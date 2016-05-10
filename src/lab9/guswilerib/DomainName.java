@@ -17,7 +17,7 @@ public class DomainName {
         }
         for(int i = 0; i<domainName.length();i++){
             char character = domainName.charAt(i);
-            if(!Character.isLetterOrDigit(character) || character != '.' || character != '-'){
+            if(!Character.isLetterOrDigit(character) && character != '.' && character != '-'){
                 throw new IllegalArgumentException("The domain name " + domainName + " is invalid. Invalid character: "
                         + character);
             } else if(character == '.' && (domainName.charAt(i - 1) == '.' || domainName.charAt(i + 1) == '.')){
