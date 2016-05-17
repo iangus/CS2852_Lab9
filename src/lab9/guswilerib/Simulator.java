@@ -2,6 +2,7 @@ package lab9.guswilerib;
 
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.Scanner;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
