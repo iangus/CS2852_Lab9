@@ -1,10 +1,17 @@
+/*
+ * CS2852 - 041
+ * Spring 2016
+ * Lab 9
+ * Name: Ian Guswiler
+ * Created: 5/10/2016
+ */
+
 package lab9.guswilerib;
 
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -19,14 +26,10 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 /**
- * CS2852 - 041
- * Spring 2016
- * Lab
- * Name: Ian Guswiler
- * Created: 5/10/2016
+ * Gui implementation for the domain name system program.
  */
 public class Simulator extends JFrame {
-    private DNS system = new DNS("entryStorage.txt");
+    private DNS system = new DNS("dnsentries.txt");
     private JButton startButton = new JButton("Start");
     private JButton stopButton = new JButton("Stop");
     private JButton updateButton = new JButton("Update");
@@ -40,6 +43,9 @@ public class Simulator extends JFrame {
     private Queue<String> undoQueue = new LinkedList<>();
     private Stack<String> redoStack = new Stack<>();
 
+    /**
+     * Constructs a new program window.
+     */
     public Simulator(){
         initializeButtons();
         disableComponents();
@@ -80,9 +86,12 @@ public class Simulator extends JFrame {
 
     private void initializeButtons(){
         startButton.addActionListener(e -> {
-            system.start();
-            enableComponents();
-            startButton.setEnabled(false);
+            if(!system.start()){
+                JOptionPane.showMessageDialog(null,"The system failed to start.", "Start Error", JOptionPane.ERROR_MESSAGE);
+            }else {
+                enableComponents();
+                startButton.setEnabled(false);
+            }
         });
 
         exitButton.addActionListener(e -> {
@@ -218,6 +227,10 @@ public class Simulator extends JFrame {
         addressField.setEnabled(false);
     }
 
+    /**
+     * Makes a new simulator object and sets its visiblity
+     * @param args Ignored
+     */
     public static void main(String[] args) {
         Simulator simulator = new Simulator();
         simulator.setVisible(true);

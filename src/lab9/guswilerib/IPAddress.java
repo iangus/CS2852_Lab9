@@ -1,14 +1,18 @@
+/*
+ * CS2852 - 041
+ * Spring 2016
+ * Lab 9
+ * Name: Ian Guswiler
+ * Created: 5/10/2016
+ */
+
 package lab9.guswilerib;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
- * CS2852 - 041
- * Spring 2016
- * Lab
- * Name: Ian Guswiler
- * Created: 5/10/2016
+ * Represents an IPv4 address with an int for each separate segment
  */
 public class IPAddress {
     private int segment1;
@@ -16,6 +20,10 @@ public class IPAddress {
     private int segment3;
     private int segment4;
 
+    /**
+     * Constructs a new IPAddress from a string value
+     * @param newAddress string representation of the IPAddress to be created
+     */
     public IPAddress(String newAddress){
         int counter = 0;
         Scanner ipScanner = new Scanner(newAddress);
@@ -42,6 +50,10 @@ public class IPAddress {
         segment4 = ipScanner.nextInt();
     }
 
+    /**
+     * Concatenates the individual address segments into the ip address pattern
+     * @return String representation of the IPAddress.
+     */
     public String toString(){
         return "" + segment1 + "." + segment2 + "." + segment3 + "." + segment4;
     }

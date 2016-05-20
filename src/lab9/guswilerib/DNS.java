@@ -1,37 +1,50 @@
+/*
+ * CS2852 - 041
+ * Spring 2016
+ * Lab 9
+ * Name: Ian Guswiler
+ * Created: 5/10/2016
+ */
+
 package lab9.guswilerib;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 
 /**
- * CS2852 - 041
- * Spring 2016
- * Lab
- * Name: Ian Guswiler
- * Created: 5/10/2016
+ * Domain Name System. Utilizes a map to store domain name and ip address pairs. Domain names are used as keys.
+ *
+ * @author Ian Guswiler
+ * @version 5/19/2016
  */
 public class DNS{
     private File storageFile;
     private Map<DomainName,IPAddress> map;
     private boolean started = false;
 
+    /**
+     * Constructs a new domain name system with a specified file to load files from and store the entries in when the system is stopped.
+     * @param filename file to load from and store to
+     */
     public DNS(String filename){
         storageFile = new File(filename);
     }
 
+    /**
+     * Starts the system.
+     * @return returns true if the system was started successfully or was already started
+     */
     public boolean start(){
 
         if(!started) {
             map = new HashMap<>();
-            try(Scanner fileScan = new Scanner(new File("dnsentries.txt"))){
+            try(Scanner fileScan = new Scanner(storageFile)){
                 while(fileScan.hasNext()){
                     try {
                         IPAddress address = new IPAddress(fileScan.next());
@@ -43,13 +56,17 @@ public class DNS{
                 }
                 started = true;
             } catch (FileNotFoundException e){
-                System.err.println("The input dns file could not be found.");
+                System.err.println("The input dns file '" + storageFile + "' could not be found.");
             }
         }
 
         return started;
     }
 
+    /**
+     * Stops the system. Writes current entries to the storage file.
+     * @return returns true if the system was stopped successfully or was already stopped
+     */
     public boolean stop(){
         if(started){
             try(FileWriter writer = new FileWriter(storageFile)){
@@ -66,6 +83,11 @@ public class DNS{
         return !started;
     }
 
+    /**
+     * Searches the dns for a domain name
+     * @param domainName domain name to be searched for
+     * @return IP address value associated with the specified domain name. Returns null if the domain name isn't found.
+     */
     public IPAddress lookup(DomainName domainName){
         IPAddress result = null;
         if(started && map.containsKey(domainName)){
@@ -74,6 +96,11 @@ public class DNS{
         return result;
     }
 
+    /**
+     * Updates the dns based on a string command
+     * @param command action to be performed on the dns
+     * @return The IP address value previously associated with the domain name that was either changed or removed
+     */
     public IPAddress update(String command){
         IPAddress previousIP = null;
         String action;
@@ -110,3 +137,7 @@ public class DNS{
         return previousIP;
     }
 }
+/*
+I chose the HashMap because implementing a hashCode() method for the DomainName class was simpler
+than making it implement the comparable interface.
+ */
