@@ -2,10 +2,18 @@ package lab9.guswilerib;
 
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
+import java.util.Stack;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
@@ -18,20 +26,25 @@ import javax.swing.WindowConstants;
  * Created: 5/10/2016
  */
 public class Simulator extends JFrame {
+    private DNS system = new DNS("entryStorage.txt");
+    private JButton startButton = new JButton("Start");
+    private JButton stopButton = new JButton("Stop");
+    private JButton updateButton = new JButton("Update");
+    private JButton addButton = new JButton("Add");
+    private JButton deleteButton = new JButton("Delete");
+    private JButton undoButton = new JButton("Undo");
+    private JButton redoButton = new JButton("Redo");
+    private JButton exitButton = new JButton("Exit");
+    private JTextField nameField = new JTextField(30);
+    private JTextField addressField = new JTextField(20);
+    private Queue<String> undoQueue = new LinkedList<>();
+    private Stack<String> redoStack = new Stack<>();
 
     public Simulator(){
-        JButton startButton = new JButton("Start");
-        JButton stopButton = new JButton("Stop");
-        JButton updateButton = new JButton("Update");
-        JButton addButton = new JButton("Add");
-        JButton deleteButton = new JButton("Delete");
-        JButton undoButton = new JButton("Undo");
-        JButton redoButton = new JButton("Redo");
-        JButton exitButton = new JButton("Exit");
+        initializeButtons();
+        disableComponents();
         JLabel nameLabel = new JLabel("Domain Name: ");
         JLabel addressLabel = new JLabel("IP Address: ");
-        JTextField nameField = new JTextField(30);
-        JTextField addressField = new JTextField(20);
         JPanel row1 = new JPanel(new FlowLayout());
         JPanel row2 = new JPanel(new FlowLayout());
         JPanel row3 = new JPanel(new FlowLayout());
@@ -63,6 +76,146 @@ public class Simulator extends JFrame {
         add(row2);
         add(row3);
         add(row4);
+    }
+
+    private void initializeButtons(){
+        startButton.addActionListener(e -> {
+            system.start();
+            enableComponents();
+            startButton.setEnabled(false);
+        });
+
+        exitButton.addActionListener(e -> {
+            this.dispose();
+        });
+
+        stopButton.addActionListener(e -> {
+            system.stop();
+            nameField.setText("");
+            addressField.setText("");
+            disableComponents();
+            startButton.setEnabled(true);
+        });
+
+        updateButton.addActionListener(e -> {
+            try(Scanner fileScan = new Scanner(new File("updates.txt"))){
+                while(fileScan.hasNextLine()){
+                    system.update(fileScan.nextLine());
+                }
+            } catch (IOException e1){
+                JOptionPane.showMessageDialog(null,"IOException: " + e1.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+            }catch (InputMismatchException e2){
+                System.err.println(e2.getMessage());
+            } catch (IllegalArgumentException e3){
+                System.err.println(e3.getMessage());
+            }
+        });
+
+        addButton.addActionListener(e -> {
+            try{
+                String action = "ADD " + addressField.getText() + " " + nameField.getText();
+                system.update(action);
+                undoQueue.offer(action);
+                if(!undoButton.isEnabled()){
+                    undoButton.setEnabled(true);
+                }
+            } catch (IllegalArgumentException e1){
+                JOptionPane.showMessageDialog(null,e1.getMessage(),"Illegal Argument",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            try{
+                String action = "DEL " + addressField.getText() + " " + nameField.getText();
+                system.update(action);
+                undoQueue.offer(action);
+                if(!undoButton.isEnabled()){
+                    undoButton.setEnabled(true);
+                }
+            } catch (IllegalArgumentException e1){
+                JOptionPane.showMessageDialog(null,e1.getMessage(),"Illegal Argument",JOptionPane.ERROR_MESSAGE);
+            } catch (InputMismatchException e2){
+                JOptionPane.showMessageDialog(null,e2.getMessage(),"Input Mismatch",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        undoButton.addActionListener(e -> {
+            try {
+                String action = undoQueue.poll();
+                Scanner commandScan = new Scanner(action);
+                switch (commandScan.next()){
+                    case "ADD":
+                        system.update("DEL " + commandScan.next() + " " + commandScan.next());
+                        break;
+                    case "DEL":
+                        system.update("DEL " + commandScan.next() + " " + commandScan.next());
+                        break;
+                }
+                redoStack.push(action);
+                if(!redoButton.isEnabled()){
+                    redoButton.setEnabled(true);
+                }
+                if(undoQueue.isEmpty()){
+                    undoButton.setEnabled(false);
+                }
+            } catch (IllegalArgumentException e1){
+                JOptionPane.showMessageDialog(null,e1.getMessage(),"Illegal Argument",JOptionPane.ERROR_MESSAGE);
+            } catch (InputMismatchException e2){
+                JOptionPane.showMessageDialog(null,e2.getMessage(),"Input Mismatch",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        redoButton.addActionListener(e -> {
+            try {
+                String action = redoStack.pop();
+                system.update(action);
+                undoQueue.offer(action);
+                if(!undoButton.isEnabled()){
+                    undoButton.setEnabled(true);
+                }
+                if(redoStack.isEmpty()){
+                    redoButton.setEnabled(false);
+                }
+            } catch (IllegalArgumentException e1){
+                JOptionPane.showMessageDialog(null,e1.getMessage(),"Illegal Argument",JOptionPane.ERROR_MESSAGE);
+            } catch (InputMismatchException e2){
+                JOptionPane.showMessageDialog(null,e2.getMessage(),"Input Mismatch",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        nameField.addActionListener(e -> {
+            try{
+                DomainName name = new DomainName(nameField.getText());
+                IPAddress address = system.lookup(name);
+                if(address == null){
+                    addressField.setText("NOT FOUND");
+                }else {
+                    addressField.setText(address.toString());
+                }
+            } catch (IllegalArgumentException e1){
+                JOptionPane.showMessageDialog(null,e1.getMessage(),"Illegal Argument",JOptionPane.ERROR_MESSAGE);
+            }
+        });
+    }
+
+    private void enableComponents(){
+        stopButton.setEnabled(true);
+        updateButton.setEnabled(true);
+        addButton.setEnabled(true);
+        deleteButton.setEnabled(true);
+        nameField.setEnabled(true);
+        addressField.setEnabled(true);
+    }
+
+    private void disableComponents(){
+        stopButton.setEnabled(false);
+        updateButton.setEnabled(false);
+        addButton.setEnabled(false);
+        deleteButton.setEnabled(false);
+        undoButton.setEnabled(false);
+        redoButton.setEnabled(false);
+        nameField.setEnabled(false);
+        addressField.setEnabled(false);
     }
 
     public static void main(String[] args) {

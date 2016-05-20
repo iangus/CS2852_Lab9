@@ -56,7 +56,7 @@ public class DNS{
                 for(Map.Entry entry: map.entrySet()){
                     DomainName domainName = (DomainName) entry.getKey();
                     IPAddress ipAddress = (IPAddress) entry.getValue();
-                    writer.write(ipAddress.toString() + "  " + domainName.toString());
+                    writer.write(ipAddress.toString() + "  " + domainName.toString() + "\n");
                 }
                 started = false;
             } catch (IOException e){
@@ -84,9 +84,8 @@ public class DNS{
                action = commandScan.next().toUpperCase();
                address = new IPAddress(commandScan.next());
                name = new DomainName(commandScan.next());
-               if(!action.equals("ADD") || !action.equals("DEL")){
-                   throw new IllegalArgumentException("The command line '" + command + "' was not processed because '" +
-                           action + "' is not a valid action.");
+               if(!action.equals("ADD") && !action.equals("DEL")){
+                   throw new IllegalArgumentException("'" + action + "' is not a valid action.");
                }
            } catch (IllegalArgumentException e){
                throw new IllegalArgumentException("The command line '" + command + "' was not processed because the " +
@@ -102,8 +101,10 @@ public class DNS{
                     if(removed){
                         previousIP = address;
                     }else if(!map.get(name).equals(address)){
-                        throw new InputMismatchException("THIS NEEDS TO BE CHANGED");
+                        throw new InputMismatchException("There is no such Domain/IP address pair '" + name + ", " +
+                                address + "' in the system. The command line '" + command + "' was skipped.");
                     }
+                    break;
             }
         }
         return previousIP;

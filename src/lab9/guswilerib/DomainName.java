@@ -32,6 +32,10 @@ public class DomainName {
     }
 
     public boolean equals(Object o){
-        return name.equals(o.toString().toLowerCase());
+        return name.equals(o.toString());
+    }
+
+    public int hashCode(){
+        return name.hashCode();
     }
 }
